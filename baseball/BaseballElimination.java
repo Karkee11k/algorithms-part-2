@@ -1,4 +1,4 @@
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -17,7 +17,8 @@ import edu.princeton.cs.algs4.StdOut;
 public class BaseballElimination {
     private final String[] teams;               
     private final Map<String, Integer> vertices;
-    private final int[] wins, losses, remainings;
+    private final Map<String, TeamEliminationStats> eliminationCache;
+    private final int[] wins, losses, remaining;
     private final int[][] games;
 
     /**
@@ -28,10 +29,11 @@ public class BaseballElimination {
         In in = new In(filename);
         int n = in.readInt();
         teams = new String[n];
-        vertices = new LinkedHashMap<>();
+        vertices = new HashMap<>();
+        eliminationCache = new HashMap<>();
         wins = new int[n];
         losses = new int[n];
-        remainings = new int[n];
+        remaining = new int[n];
         games = new int[n][n];
 
         for (int i = 0; i < n; i++) {
@@ -39,7 +41,7 @@ public class BaseballElimination {
             vertices.put(teams[i], i);
             wins[i] = in.readInt();
             losses[i] = in.readInt();
-            remainings[i] = in.readInt();
+            remaining[i] = in.readInt();
             for (int j = 0; j < n; j++)
                 games[i][j] = in.readInt();
         }
@@ -91,7 +93,7 @@ public class BaseballElimination {
      */
     public int remaining(String team) {
         validateTeam(team);
-        return remainings[vertices.get(team)];
+        return remaining[vertices.get(team)];
     }
 
     /**
@@ -115,19 +117,7 @@ public class BaseballElimination {
      */
     public boolean isEliminated(String team) {
         validateTeam(team);
-        int n = teams.length, x = vertices.get(team);
-
-        // trivial case
-        for (int i = 0; i < n; i++) {
-            if (wins[x] + remainings[x] < wins[i]) 
-                return true;
-        }
-
-        // non trivial case
-        int s = n, t = s + 1;
-        FlowNetwork G = createFlowNetwork(s, t, x);
-        new FordFulkerson(G, s, t);
-        return isFull(G, s);
+        return eliminationCache.computeIfAbsent(team, this::calculateElimination).isEliminated;
     }
 
     /**
@@ -139,14 +129,19 @@ public class BaseballElimination {
      */
     public Iterable<String> certificateOfElimination(String team) {
         validateTeam(team);
+        return eliminationCache.computeIfAbsent(team, this::calculateElimination).certificate;
+    }
+
+    // calculates that the given team is eliminated mathematically or not
+    private TeamEliminationStats calculateElimination(String team) {
         int n = teams.length, x = vertices.get(team);
         LinkedList<String> ls = new LinkedList<>();
 
         // trivial case
         for (int i = 0; i < n; i++) {
-            if (wins[x] + remainings[x] < wins[i]) {
+            if (wins[x] + remaining[x] < wins[i]) {
                 ls.add(teams[i]);
-                return ls;
+                return new TeamEliminationStats(ls);
             }
         }
 
@@ -154,10 +149,9 @@ public class BaseballElimination {
         int s = n, t = n + 1;
         FlowNetwork G = createFlowNetwork(s, t, x);
         FordFulkerson ff = new FordFulkerson(G, s, t);
-
         for (int i = 0; i < n; i++)
             if (ff.inCut(i)) ls.add(teams[i]);
-        return ls.isEmpty() ? null : ls;
+        return new TeamEliminationStats(ls.isEmpty() ? null : ls);
     }
 
     // creates and returns the flow network 
@@ -177,24 +171,26 @@ public class BaseballElimination {
                 G.addEdge(new FlowEdge(gameVertex++, j, Double.POSITIVE_INFINITY)); 
             }
             // team vertex to sink vertex
-            G.addEdge(new FlowEdge(i, t, wins[x] + remainings[x] - wins[i])); 
+            G.addEdge(new FlowEdge(i, t, wins[x] + remaining[x] - wins[i])); 
         }
         return G;
     }
 
     // throw IllegalArgumentException if given team is invalid
     private void validateTeam(String team) {
-        if (team == null || !vertices.containsKey(team))
+        if (!vertices.containsKey(team))
             throw new IllegalArgumentException("Invalid team " + team);
     }
 
-    // returns true if all edges from s are full, else false
-    private boolean isFull(FlowNetwork G, int s) {
-        for (FlowEdge e : G.adj(s)) {
-            if (e.flow() != e.capacity())
-                return true;
+    // wrapper for the cache to store the results
+    private class TeamEliminationStats {
+        final boolean isEliminated;
+        final Iterable<String> certificate;
+
+        TeamEliminationStats(Iterable<String> certificate) {
+            isEliminated = certificate != null;
+            this.certificate = certificate;
         }
-        return false;
     }
 
     // test client
