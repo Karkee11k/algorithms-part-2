@@ -102,7 +102,7 @@ public class BoggleSolver {
         return n < 5 ? 1 : 11;
     }
 
-    // throw IllegalArgumentException if given word is invalid
+    // returns true if given word is valid
     private boolean validWord(String word) {
         return trie.contains(word) && word.length() > 2;
     }
