@@ -11,14 +11,13 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Karthikeyan
  */
 public class BoggleSolver {
+    private static final int[] X_DIRECTION = { -1, 0, 1, -1, 1, -1, 0, 1 };
+    private static final int[] Y_DIRECTION = { -1, -1, -1, 0, 0, 1, 1, 1 };
     private final Trie trie = new Trie();
-    private final int[] xdirection = { -1, 0, 1, -1, 1, -1, 0, 1 };
-    private final int[] ydirection = { -1, -1, -1, 0, 0, 1, 1, 1 };
     private boolean[][] marked;
 
     /**
      * Constructs the BoggleSolver with the given dictionary.
-     * 
      * @param dictionary the dictionary
      * @throws IllegalArgumentException if dictionary is null
      */
@@ -31,7 +30,6 @@ public class BoggleSolver {
 
     /**
      * Returns all the valid words can be made from the given boggle board.
-     * 
      * @param board the BoggleBoard
      * @throws IllegalArgumentException if board is null
      * @return returns all the valid words can be made
@@ -43,9 +41,9 @@ public class BoggleSolver {
         int m = board.cols();
         Set<String> validWords = new HashSet<>();
         StringBuilder path = new StringBuilder("0");
+        marked = new boolean[n][m];
 
         for (int i = 0; i < n; i++) {
-            marked = new boolean[n][m];
             for (int j = 0; j < m; j++) {
                 marked[i][j] = true;
                 char c = board.getLetter(i, j);
@@ -61,7 +59,6 @@ public class BoggleSolver {
 
     /**
      * Returns the score of the given word.
-     * 
      * @param word the word
      * @throws IllegalArgumentException if word is invalid
      * @return returns the score
@@ -76,9 +73,9 @@ public class BoggleSolver {
         if (!trie.hasPrefix(word)) return;
         if (trie.contains(word) && word.length() > 2) validWords.add(word);
 
-        for (int i = 0; i < xdirection.length; i++) {
-            int x = row + xdirection[i];
-            int y = col + ydirection[i];
+        for (int i = 0; i < X_DIRECTION.length; i++) {
+            int x = row + X_DIRECTION[i];
+            int y = col + Y_DIRECTION[i];
             if (!validIndex(board, x, y) || marked[x][y]) continue;
             marked[x][y] = true;
             char c = board.getLetter(x, y);
