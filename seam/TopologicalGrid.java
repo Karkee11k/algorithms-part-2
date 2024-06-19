@@ -27,8 +27,8 @@ public class TopologicalGrid {
      * @return returns sequences of indices in topological order of vertical 
      * DAG of pixel grid
      */
-    public Iterable<Integer[]> vertical() {
-        Stack<Integer[]> order = new Stack<>();
+    public Iterable<int[]> vertical() {
+        Stack<int[]> order = new Stack<>();
         marked = new boolean[width][height];
         for (int x = 0; x < width; x++)
             DFSVertical(x, 0, order);
@@ -41,8 +41,8 @@ public class TopologicalGrid {
      * @return returns the sequences of indices in topological order of 
      * horizontal DAG of the pixel grid.
      */
-    public Iterable<Integer[]> horizontal() {
-        Stack<Integer[]> order = new Stack<>();
+    public Iterable<int[]> horizontal() {
+        Stack<int[]> order = new Stack<>();
         marked = new boolean[width][height];
         for (int y = 0; y < height; y++)
             DFSHorizontal(0, y, order);
@@ -50,24 +50,24 @@ public class TopologicalGrid {
     }
 
     // DFS for vertical DAG
-    private void DFSVertical(int x, int y, Stack<Integer[]> order) {
+    private void DFSVertical(int x, int y, Stack<int[]> order) {
         marked[x][y] = true;
         if (y < height - 1) {
             if (x < width - 1 && !marked[x + 1][y + 1]) DFSVertical(x + 1, y + 1, order);
             if (x > 0 && !marked[x - 1][y + 1])         DFSVertical(x - 1, y + 1, order);
             if (!marked[x][y + 1])                      DFSVertical(x, y + 1, order);
         }
-        order.push(new Integer[]{x, y});
+        order.push(new int[]{x, y});
     }
 
     // DFS for horizontal DAG
-    private void DFSHorizontal(int x, int y, Stack<Integer[]> order) {
+    private void DFSHorizontal(int x, int y, Stack<int[]> order) {
         marked[x][y] = true;
         if (x < width - 1) {
             if (y < height - 1 && !marked[x + 1][y + 1]) DFSHorizontal(x + 1, y + 1, order);
             if (y > 0 && !marked[x + 1][y - 1])          DFSHorizontal(x + 1, y - 1, order);
             if (!marked[x + 1][y])                       DFSHorizontal(x + 1, y, order);
         }
-        order.push(new Integer[]{x, y});
+        order.push(new int[]{x, y});
     }
 }

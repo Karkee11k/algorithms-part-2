@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.util.Arrays;
 
 import edu.princeton.cs.algs4.Picture;
 import edu.princeton.cs.algs4.StdIn;
@@ -29,6 +30,8 @@ public class SeamCarver {
             throw new IllegalArgumentException("Null arguments not allowed.");
         this.picture = new Picture(picture);
         energy = new double[width()][height()];
+        for (double[] i : energy)
+            Arrays.fill(i, Double.NaN);
     }
 
     /**
@@ -67,7 +70,7 @@ public class SeamCarver {
         if (isBorder(x, y)) return BORDER_ENERGY;
 
         // caching the energy calculation
-        if (energy[x][y] == 0) {
+        if (Double.isNaN(energy[x][y])) {
             int xgradient = gradient(picture.getRGB(x - 1, y), picture.getRGB(x + 1, y));
             int ygradient = gradient(picture.getRGB(x, y - 1), picture.getRGB(x, y + 1));
             energy[x][y] = Math.sqrt(xgradient + ygradient);
@@ -87,7 +90,7 @@ public class SeamCarver {
         int[][] edgeTo   = new int[width][height];
         fill(disTo, 0, 1, Double.POSITIVE_INFINITY);
         
-        for (Integer[] indices : topological.vertical()) {
+        for (int[] indices : topological.vertical()) {
             int x = indices[0], y = indices[1];
             if (y == height - 1) continue;
             if (x < width - 1)   relax(disTo, edgeTo, x, y, x + 1, y + 1, true);
@@ -109,7 +112,7 @@ public class SeamCarver {
         int[][] edgeTo   = new int[width][height];
         fill(disTo, 1, 0, Double.POSITIVE_INFINITY);
         
-        for (Integer[] indices : topological.horizontal()) {
+        for (int[] indices : topological.horizontal()) {
             int x = indices[0], y = indices[1];
             if (x == width - 1) continue;
             if (y < height - 1) relax(disTo, edgeTo, x, y, x + 1, y + 1, false);
@@ -135,10 +138,13 @@ public class SeamCarver {
             for (int x = 0; x < pic.width(); x++) {
                 Color color = picture.get(x < seam[y] ? x : x + 1, y);
                 pic.set(x, y, color);
+
+                // avoiding energy recalculation, resetting only affected pixels
+                if (x >= seam[y]) energy[x][y] = energy[x+1][y];
+                if (seam[y] - 1 == x || seam[y] == x) energy[x][y] = Double.NaN;
             }
         }
         picture = pic;
-        fill(energy, 0, 0, 0.0);
     }
 
     /**
@@ -156,11 +162,14 @@ public class SeamCarver {
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < pic.height(); y++) {
                 Color color = picture.get(x, y < seam[x] ? y : y + 1);
-                pic.set(x, y, color);     
+                pic.set(x, y, color); 
+
+                // avoiding recalculation, resetting only the affected pixels
+                if (y >= seam[x]) energy[x][y] = energy[x][y+1];     
+                if (seam[x] - 1 == y || seam[x] == y) energy[x][y] = Double.NaN;    
             }
         }
         picture = pic;
-        fill(energy, 0, 0, 0.0);
     }
 
     // throw IllegalArgumentException if vertical seam is invalid
@@ -276,13 +285,12 @@ public class SeamCarver {
     // unit test the code
     public static void main(String[] args) {
         Picture picture = new Picture("images/sung.jpg");
-
         SeamCarver seamCarver = new SeamCarver(picture);
         StdOut.println(seamCarver.width() + "x" + seamCarver.height());
 
         int w = StdIn.readInt();
-        int h = StdIn.readInt();
- 
+        int h = StdIn.readInt(); 
+        
         for (int i = 0; i < w; i++) {
             int[] seam = seamCarver.findVerticalSeam();
             seamCarver.removeVerticalSeam(seam);
