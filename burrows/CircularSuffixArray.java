@@ -52,7 +52,7 @@ public class CircularSuffixArray {
         return index[i];
     }
 
-    // returns the dth char of ith suffix array
+    // returns the dth char of ith suffix
     private static int charAt(String s, int d, int i) {
         if (d == s.length()) return -1;
         return s.charAt((d + i) % s.length());
