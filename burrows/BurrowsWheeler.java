@@ -26,7 +26,6 @@ public class BurrowsWheeler {
         } 
         for (int i = 0; i < n; i++) 
             BinaryStdOut.write(s.charAt((csa.index(i) - 1 + n) % n));
-
         BinaryStdOut.close();
     }
 
