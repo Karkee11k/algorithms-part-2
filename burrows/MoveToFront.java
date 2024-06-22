@@ -25,7 +25,7 @@ public class MoveToFront {
             BinaryStdOut.write(i, 8);  
             for (; i > 0; i--) 
                 characters[i] = characters[i-1];
-            characters[0] = c; 
+            characters[i] = c; 
         }
         BinaryStdOut.close();
     }
