@@ -118,7 +118,7 @@ public class WordNet {
         return G;
     }
 
-    // returns true if the digraph is a rooted DAG graph
+    // returns true if the digraph is a rooted DAG
     private boolean isRootedDAG() {
         if (new DirectedCycle(G).hasCycle()) return false;
 
